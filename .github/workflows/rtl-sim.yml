@@ -1,0 +1,24 @@
+name: RTL Simulation
+on:
+  push:
+    branches: [cloud-rtl-test-v4]
+  workflow_dispatch:
+jobs:
+  simulate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Icarus Verilog
+        run: sudo apt-get update && sudo apt-get install -y iverilog
+      - name: Compile multipath fabric
+        run: iverilog -g2012 -o /tmp/multipath.vvp rtl_cloud/multipath_memory_fabric.sv rtl_cloud/tb_multipath_memory_fabric.sv
+      - name: Run multipath fabric
+        run: vvp /tmp/multipath.vvp
+      - name: Compile banked ECC
+        run: iverilog -g2012 -o /tmp/ecc.vvp rtl_cloud/ecc_secded_64.sv rtl_cloud/banked_unified_memory_ecc.sv rtl_cloud/tb_banked_memory_ecc.sv
+      - name: Run banked ECC
+        run: vvp /tmp/ecc.vvp
+      - name: Compile coherence and DMA
+        run: iverilog -g2012 -o /tmp/coh.vvp rtl_cloud/coherence_manager_v4.sv rtl_cloud/dma_engine_v4.sv rtl_cloud/tb_coherence_dma_v4.sv
+      - name: Run coherence and DMA
+        run: vvp /tmp/coh.vvp
